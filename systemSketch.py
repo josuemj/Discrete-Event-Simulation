@@ -26,20 +26,14 @@ class System:
         print(proceduresList)
         return proceduresList
 
-def RunSystem(env,mainSystem,interval,processQt):
+def RunSystem(env,ram,cpuInstructions,interval,processQt):
+    mainSystem = System(100,3)
     print("INITIAL RAM: "+str(mainSystem.ram))
-
     SystemProcedures = mainSystem.generateProcess(processQt) #This will be defaultly the waiting as well
-
-    #for obj in SystemProcedures: #memory checker iterator
-    #    print(obj.memory)
-
     RAM_queue = []
-   
-
     while True:
         for i in range(interval):
-
+            print("YILED 1")
             print("=====================")
             print("RAM: "+str(mainSystem.ram))
 
@@ -51,8 +45,8 @@ def RunSystem(env,mainSystem,interval,processQt):
                     
                     print("Process taken at: "+str(env.now))
                     mainSystem.ram = mainSystem.ram - SystemProcedures[0].memory
+                    RAM_queue.append(SystemProcedures[0])
                     SystemProcedures.pop(0)
-                    RAM_queue.append(SystemProcedures[i])
                 
                     print("RAM: "+str(mainSystem.ram))
 
@@ -67,11 +61,19 @@ def RunSystem(env,mainSystem,interval,processQt):
 
         for i in range(interval):
 
+            print("YIELD 2")
+
             try:
-                processRunning = RAM_queue[i]
+                processRunning = RAM_queue[0]
+
+                print("===============")
+                print("Instructions: "+str(processRunning.instructions))
+                print("INSTRUCTIONS RUNABLE: "+str(mainSystem.cpuInstructions))
 
                 if processRunning.instructions <= mainSystem.cpuInstructions:
                     print("Process succesfully completed at: "+str(env.now))
+                    mainSystem.ram = mainSystem.ram + processRunning.memory
+                    print("RAM: "+str(mainSystem.ram))
                     #Process might now feel free to go
                     RAM_queue.pop(0)
 
@@ -87,18 +89,18 @@ def RunSystem(env,mainSystem,interval,processQt):
 
         yield env.timeout(1)
 
+#env = environment
+#ram = ram memory size
+#cpuInstructions = instructions that cpu can run per process
+#Interval = interval of processes
+#Process = Quant of process (25,50, etc...)
 
 
+#def RunSystem(env,ram,cpuInstructions,interval,processQt):
 
-
-
-
-mySystem = System(100,3)
 env = simpy.Environment()
-env.process(RunSystem(env,mySystem,1,25))
-env.run(until=100) #Until, the quantify of processes
-
-#def RunSystem(env,mainSystem,interval,processQt):
+env.process(RunSystem(env,100,3,5,500))
+env.run() #Until
 
 
 
