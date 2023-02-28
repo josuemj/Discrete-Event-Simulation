@@ -4,7 +4,7 @@ from random import randint
 
 class Process():
 
-    def __init__(self,):
+    def __init__(self):
         self.instructions = randint(1,10)
         self.memory = randint(1,10)
         
@@ -14,47 +14,91 @@ class System:
     def __init__(self,ram,cpuInstructions):
         self.ram = ram
         self.cpuInstructions = cpuInstructions
-        
 
-def RunSystem(env,procedures,System):
-    print("INITIAL RAM: "+str(System.ram))
+    #Method returns an array of n procedures.
+    def generateProcess(self,proceduresQt):
+        proceduresList = []
+
+        for i in range(proceduresQt):
+            newProcess = Process()
+            print(str(i+1),". OBJ: "+str(newProcess),"MEMORY GEN: "+str(newProcess.memory))
+            proceduresList.append(newProcess)
+        print(proceduresList)
+        return proceduresList
+
+def RunSystem(env,mainSystem,interval,processQt):
+    print("INITIAL RAM: "+str(mainSystem.ram))
+
+    SystemProcedures = mainSystem.generateProcess(processQt) #This will be defaultly the waiting as well
+
+    #for obj in SystemProcedures: #memory checker iterator
+    #    print(obj.memory)
+
+    RAM_queue = []
+   
 
     while True:
+        for i in range(interval):
 
-        #The process arrives to the system
-        print("===============================================")
-        randomProcess = Process()
-        print("A process has arrived to the system at: "+str(env.now))
-        print("This process memory: "+str(randomProcess.memory))
-        print("CURRENT RAM MEMORY: "+str(System.ram))
+            print("=====================")
+            print("RAM: "+str(mainSystem.ram))
 
-        if randomProcess.memory<=System.ram:
-            print("PASO EL PROCESOS A LA RAM")
-            System.ram = System.ram-randomProcess.memory
-            print("RAM ACTUAL: "+str(System.ram))
-        else:
-            print("ESTE PROCESO NE MEMES")
-        
+            try:
+                print("Process memory: "+str(SystemProcedures[0].memory))
+                print("Process instructions: "+str(SystemProcedures[0].instructions))
+
+                if SystemProcedures[0].memory <= mainSystem.ram:
+                    
+                    print("Process taken at: "+str(env.now))
+                    mainSystem.ram = mainSystem.ram - SystemProcedures[0].memory
+                    SystemProcedures.pop(0)
+                    RAM_queue.append(SystemProcedures[i])
+                
+                    print("RAM: "+str(mainSystem.ram))
+
+                else:
+                    print("Process could not be taken at: "+str(env.now))
+            except:
+                pass
+
+
+
+        yield env.timeout(1) #READY QUEUE SET
+
+        for i in range(interval):
+
+            try:
+                processRunning = RAM_queue[i]
+
+                if processRunning.instructions <= mainSystem.cpuInstructions:
+                    print("Process succesfully completed at: "+str(env.now))
+                    #Process might now feel free to go
+                    RAM_queue.pop(0)
+
+                else:
+                    print("Process could not be completed at: "+str(env.now))
+                    processRunning.instructions = processRunning.instructions - mainSystem.cpuInstructions
+                    print("Restant instructions: "+str(processRunning.instructions))
+                    SystemProcedures.append(processRunning)
+                    
+
+            except:
+                pass
+
         yield env.timeout(1)
-        print("===============================================")
 
-        #The process checks if can get into RAM
+
+
+
+
 
 
 mySystem = System(100,3)
-
-#env = simpy.Environment() #Creating environment
-#newQueue = simpy.Resource(env,25)
-#env.process(RunSystem(env,25,10,newQueue,mySystem)) #Setting the process
-
-#env.run(until=100) #Time that the simulation wil be ruuning
-print(mySystem.ram)
-
-#Running code
 env = simpy.Environment()
-env.process(RunSystem(env,25,mySystem))
-env.run(until=25) #Until, the quantify of processes
+env.process(RunSystem(env,mySystem,1,25))
+env.run(until=100) #Until, the quantify of processes
 
+#def RunSystem(env,mainSystem,interval,processQt):
 
 
 

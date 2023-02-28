@@ -11,6 +11,5 @@ def function(n):
 
 my_generator = generator(3)
 
-while True:
-    print(my_generator.__next__())
-    s = input()
+for i in range(1):
+    print(i)
